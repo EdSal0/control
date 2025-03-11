@@ -1,0 +1,31 @@
+name: Telegram Bot Workflow
+
+on:
+  push:
+    branches:
+      - main   # Se ejecuta cuando hay un push a la rama 'main'
+  pull_request:
+    branches:
+      - main   # Se ejecuta cuando se hace un pull request hacia la rama 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Se ejecuta en la última versión de Ubuntu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2  # Clona el repositorio en el entorno de ejecución
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # Usamos la versión de Python que necesites
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Instala las dependencias desde requirements.txt
+
+      - name: Run the bot
+        run: |
+          python app.py  # Ejecuta el script que corre tu bot
