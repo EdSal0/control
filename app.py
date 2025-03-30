@@ -5,36 +5,29 @@ import pandas as pd
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackContext
 
-# Configuración de logging
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Estados del bot
 HORA_ENTRADA, HORA_SALIDA = range(2)
 
-# Ruta al archivo CSV donde se guardarán los datos
 CSV_FILE = "data/registro_horas.csv"
 
-# Función para cargar el CSV
 def cargar_csv():
     try:
-        # Asegurar que el directorio data existe
         os.makedirs(os.path.dirname(CSV_FILE), exist_ok=True)
         return pd.read_csv(CSV_FILE)
     except FileNotFoundError:
         return pd.DataFrame(columns=["Fecha", "Entrada", "Salida", "Total Hrs"])
 
-# Función para guardar el CSV
 def guardar_csv(df):
     df.to_csv(CSV_FILE, index=False)
 
-# Comando de inicio
 def start(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Hola, soy tu bot de registro de horas. Por favor, ingresa tu hora de entrada en formato HH.MM")
     return HORA_ENTRADA
 
-# Registrar la hora de entrada
 def hora_entrada(update: Update, context: CallbackContext) -> int:
     fecha = datetime.today().date().strftime("%Y-%m-%d")
     entrada_str = update.message.text
@@ -60,15 +53,13 @@ def hora_salida(update: Update, context: CallbackContext) -> int:
         entrada = context.user_data['entrada']
         entrada_str = context.user_data['entrada_str']
         fecha = context.user_data['fecha']
-
-        # Manejar caso donde la salida es al día siguiente
         if salida < entrada:
             salida = salida.replace(day=salida.day + 1)
 
         # Calcular total de horas
-        total_hrs = (salida - entrada).total_seconds() / 3600  # Convertir a horas
+        total_hrs = (salida - entrada).total_seconds() / 3600  
 
-        # Actualizar el CSV
+        # Actualiza el CSV
         df = cargar_csv()
         nueva_fila = pd.DataFrame({
             "Fecha": [fecha], 
@@ -85,18 +76,16 @@ def hora_salida(update: Update, context: CallbackContext) -> int:
         update.message.reply_text("Formato incorrecto. Usa el formato HH.MM (por ejemplo, 17.45). Intenta de nuevo.")
         return HORA_SALIDA
 
-# Función para cancelar la conversación
+
 def cancel(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Registro cancelado.")
     return ConversationHandler.END
 
-# Función principal para iniciar el bot
+
 def main():
-    # Crea el Updater y el Dispatcher
+
     updater = Updater("7943538803:AAHk_cc6k696VcyjUK69k-Z0ehIaJ2Rhg3I", use_context=True)
     dispatcher = updater.dispatcher
-
-    # Configuración del ConversationHandler
     conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
